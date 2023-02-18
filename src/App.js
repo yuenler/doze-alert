@@ -1,7 +1,9 @@
 import logo from './logo.svg';
 import './App.css';
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
+
+const alertSound = new Audio('./alert.wav');
 
 function App() {
   const webcamRef = useRef(null);
@@ -13,6 +15,27 @@ function App() {
     facingMode: FACING_MODE_USER,
     // aspectRatio: 1,
   };
+
+  const detectDrowsy = (imageSrc) => {
+    const drowsy = true;
+
+    if (drowsy) {
+      console.log("drowsy");
+      // play noise to alert user that they are drowsy
+      alertSound.play();
+    }
+
+  }
+
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const imageSrc = webcamRef.current.getScreenshot();
+      detectDrowsy(imageSrc);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
 
   return (
     <div className="App">
