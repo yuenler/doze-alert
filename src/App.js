@@ -2,31 +2,35 @@ import logo from './logo.svg';
 import './App.css';
 import React, { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
-
-const alertSound = new Audio('./alert.wav');
+import Sound from 'react-sound';
+import AlertSound from './alert.wav';
 
 function App() {
+
   const webcamRef = useRef(null);
   const FACING_MODE_USER = "user";
   const FACING_MODE_ENVIRONMENT = "environment";
   const [facingMode, setFacingMode] = useState(FACING_MODE_ENVIRONMENT);
 
+  const [playStatus, setPlayStatus] = useState('STOPPED');
+
   const videoConstraints = {
     facingMode: FACING_MODE_USER,
-    // aspectRatio: 1,
   };
 
-  const detectDrowsy = (imageSrc) => {
+  const detectDrowsy = async (imageSrc) => {
     const drowsy = true;
 
     if (drowsy) {
-      console.log("drowsy");
-      // play noise to alert user that they are drowsy
-      alertSound.play();
+      setPlayStatus('PLAYING');
+      // wait 3 seconds, then stop
+      setTimeout(() => {
+        setPlayStatus('STOPPED');
+      }, 3000);
+
     }
 
   }
-
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -39,6 +43,7 @@ function App() {
 
   return (
     <div className="App">
+      <Sound url={AlertSound} playStatus={playStatus} />
       <Webcam
         ref={webcamRef}
         style={{
@@ -56,6 +61,7 @@ function App() {
         }}
         mirrored={facingMode === FACING_MODE_USER}
       />
+
     </div>
   );
 }
