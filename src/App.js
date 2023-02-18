@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import Sound from 'react-sound';
 import AlertSound from './alert.wav';
+import Map from './Map';
 
 function App() {
 
@@ -18,8 +19,12 @@ function App() {
     facingMode: FACING_MODE_USER,
   };
 
+  const drowsyClassfier = (imageSrc) => {
+    return 0.6;
+  }
+
   const detectDrowsy = async (imageSrc) => {
-    const drowsy = true;
+    const drowsy = drowsyClassfier(imageSrc) > 0.5;
 
     if (drowsy) {
       setPlayStatus('PLAYING');
@@ -61,6 +66,7 @@ function App() {
         }}
         mirrored={facingMode === FACING_MODE_USER}
       />
+      <Map />
 
     </div>
   );
