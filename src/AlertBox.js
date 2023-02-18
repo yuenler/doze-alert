@@ -5,3 +5,5 @@ const AlertBox = () => {
     </div>
   );
 };
+
+export default AlertBox;
