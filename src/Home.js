@@ -8,10 +8,11 @@ import geolib from 'geolib';
 import Sound from 'react-sound';
 import { useNavigate } from "react-router-dom";
 import OtherDriverModal from './OtherDriverModal';
-// import Button from 'react-bootstrap/Button';
-// import Modal from 'react-bootstrap/Modal';
+import * as tf from "@tensorflow/tfjs";
+import modelJSON from './machineLearning/model.json';
 
 
+let model;
 
 const Home = () => {
   const navigate = useNavigate();
@@ -45,7 +46,10 @@ const Home = () => {
   }
 
   const drowsyClassfier = (imageSrc) => {
-    return 0.6;
+    model.detect(imageSrc).then(predictions => {
+      console.log('Predictions: ', predictions);
+    });
+    return 0.4;
   }
 
   const detectDrowsy = async (imageSrc) => {
@@ -89,6 +93,9 @@ const Home = () => {
   }
 
   useEffect(() => {
+    // load the model
+    model = tf.loadLayersModel(modelJSON);
+
     // get current user location (this is only to make sure that the browser asks for permission)
     navigator.geolocation.getCurrentPosition(function (position) {
       console.log(position);
@@ -102,7 +109,6 @@ const Home = () => {
       detectDrowsy(imageSrc);
     }, 5000);
 
-
     return () => clearInterval(interval);
   }, []);
 
@@ -111,7 +117,7 @@ const Home = () => {
     <div className="App">
       {
         showAlert ??
-        <OtherDriverModal/> 
+        <OtherDriverModal />
       }
       <Sound url={OtherAlertSound} playStatus={otherPlayStatus} />
       <Webcam
