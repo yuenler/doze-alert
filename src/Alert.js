@@ -31,13 +31,13 @@ const Alert = () => {
 
 
   return (
-    <div >
+    <div style={{ margin: 20 }}>
       <Sound url={AlertSound} playStatus={playStatus} />
       <div>
         <FaArrowLeft
           size={30}
           onClick={() => {
-            navigate('/')
+            navigate('/doze-alert/')
           }}
         />
       </div>

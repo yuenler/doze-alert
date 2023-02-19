@@ -4,7 +4,7 @@ import Webcam from "react-webcam";
 import OtherAlertSound from './otherDriverAlert.wav';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/database';
-import geolib from 'geolib';
+import { getDistance } from 'geolib';
 import Sound from 'react-sound';
 import { useNavigate } from "react-router-dom";
 import OtherDriverModal from './OtherDriverModal';
@@ -21,7 +21,7 @@ const Home = () => {
   const webcamRef = useRef(null);
   const FACING_MODE_USER = "user";
   const FACING_MODE_ENVIRONMENT = "environment";
-  const [facingMode, setFacingMode] = useState(FACING_MODE_ENVIRONMENT);
+  const [facingMode, setFacingMode] = useState(FACING_MODE_USER);
   const [otherPlayStatus, setOtherPlayStatus] = useState('STOPPED');
   const [showAlert, setShowAlert] = useState(false);
   const [ready, setReady] = useState(false);
@@ -106,7 +106,7 @@ const Home = () => {
 
 
   const distance = (lat1, lon1, lat2, lon2) => {
-    const distance = geolib.getDistance(
+    const distance = getDistance(
       { latitude: lat1, longitude: lon1 },
       { latitude: lat2, longitude: lon2 }
     );
@@ -115,19 +115,22 @@ const Home = () => {
   }
 
   const listenForAlerts = () => {
-    firebase.database().ref('alerts').on('child_changed', (snapshot) => {
-      const alert = snapshot.val();
-      navigator.geolocation.getCurrentPosition(function (position) {
-        const distanceToAlert = distance(position.coords.latitude, position.coords.longitude, alert.latitude, alert.longitude);
-        if (distanceToAlert < 1000 && alert.timestamp > Date.now() - 30000) {
-          setShowAlert(true);
-          setOtherPlayStatus('PLAYING');
-          // wait 3 seconds, then stop
-          setTimeout(() => {
-            setOtherPlayStatus('STOPPED');
-          }, 3000);
+    firebase.database().ref('alerts').on('value', (snapshot) => {
+      // iterate through each person in the snapshot
+      snapshot.forEach((childSnapshot) => {
+        const alert = childSnapshot.val();
+        navigator.geolocation.getCurrentPosition(function (position) {
+          const distanceToAlert = distance(position.coords.latitude, position.coords.longitude, alert.latitude, alert.longitude);
+          if (distanceToAlert < 1000 && alert.timestamp > Date.now() - 30000) {
+            setShowAlert(true);
+            setOtherPlayStatus('PLAYING');
+            // wait 3 seconds, then stop
+            setTimeout(() => {
+              setOtherPlayStatus('STOPPED');
+            }, 3000);
 
-        }
+          }
+        });
       });
     });
   }
@@ -161,9 +164,9 @@ const Home = () => {
 
 
   return (
-    <div className="App">
+    <div className="App" >
       {
-        showAlert ??
+        showAlert &&
         <OtherDriverModal />
       }
       <Sound url={OtherAlertSound} playStatus={otherPlayStatus} />
