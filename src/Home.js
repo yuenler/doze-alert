@@ -1,14 +1,15 @@
 import './App.css';
 import React, { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
-import Sound from 'react-sound';
-import AlertSound from './alert.wav';
 import OtherAlertSound from './otherDriverAlert.wav';
 import Map from './Map';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/database';
 import geolib from 'geolib';
+import Sound from 'react-sound';
 import { useNavigate } from "react-router-dom"
+// import Button from 'react-bootstrap/Button';
+// import Modal from 'react-bootstrap/Modal';
 
 
 
@@ -22,7 +23,6 @@ const Home = () => {
   const FACING_MODE_USER = "user";
   const FACING_MODE_ENVIRONMENT = "environment";
   const [facingMode, setFacingMode] = useState(FACING_MODE_ENVIRONMENT);
-  const [playStatus, setPlayStatus] = useState('STOPPED');
   const [otherPlayStatus, setOtherPlayStatus] = useState('STOPPED');
 
 
@@ -53,13 +53,7 @@ const Home = () => {
     if (drowsy) {
 
       alertOtherDrivers();
-      setPlayStatus('PLAYING');
-      // wait 3 seconds, then stop
-      setTimeout(() => {
-        setPlayStatus('STOPPED');
-        navigate('/alert')
-
-      }, 3000);
+      navigate('/alert')
 
     }
 
@@ -114,7 +108,6 @@ const Home = () => {
 
   return (
     <div className="App">
-      <Sound url={AlertSound} playStatus={playStatus} />
       <Sound url={OtherAlertSound} playStatus={otherPlayStatus} />
       <Webcam
         ref={webcamRef}

@@ -4,6 +4,7 @@ import firebase from 'firebase/compat/app';
 import Home from './Home';
 import Alert from './Alert';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
+import 'bootstrap/dist/css/bootstrap.css';
 
 
 function App() {
@@ -21,7 +22,7 @@ function App() {
   firebase.initializeApp(config);
 
   return (
-    <div className="w-100" style={{ maxWidth: "400px" }}>
+    <div className="d-flex justify-content-center" style={{ marginTop: 20 }}>
       <Router>
         <Routes>
           <Route exact path="/" element={<Home />} />
