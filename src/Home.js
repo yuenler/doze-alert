@@ -96,12 +96,14 @@ const Home = () => {
   }
 
   const detectDrowsy = async () => {
-    const drowsy = (await drowsyClassfier()) < 0.5;
-    if (drowsy) {
+    const drowsy1 = (await drowsyClassfier()) < 0.5;
+    // wait 5 seconds
+    await new Promise(r => setTimeout(r, 5000));
+    const drowsy2 = (await drowsyClassfier()) < 0.5;
+    if (drowsy1 && drowsy2) {
       alertOtherDrivers();
       navigate('/doze-alert/alert')
     }
-
   }
 
 
@@ -157,7 +159,7 @@ const Home = () => {
     // every 5 seconds, take a screenshot and classify it as drowsy or not
     const interval = setInterval(() => {
       detectDrowsy();
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);
