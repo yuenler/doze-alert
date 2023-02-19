@@ -23,7 +23,6 @@ const Alert = () => {
     // flash the stop sign
     const interval = setInterval(() => {
       const image = document.getElementById('stop');
-      console.log(image.style.visibility);
       image.style.visibility = image.style.visibility === 'hidden' ? 'visible' : 'hidden';
     }
       , 500);

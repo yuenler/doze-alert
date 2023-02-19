@@ -2,7 +2,6 @@ import './App.css';
 import React, { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import OtherAlertSound from './otherDriverAlert.wav';
-import Map from './Map';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/database';
 import geolib from 'geolib';
@@ -75,13 +74,12 @@ const Home = () => {
       navigator.geolocation.getCurrentPosition(function (position) {
         const distanceToAlert = distance(position.coords.latitude, position.coords.longitude, alert.latitude, alert.longitude);
         if (distanceToAlert < 1000 && alert.timestamp > Date.now() - 5000) {
-          navigate('/alert')
-
           setOtherPlayStatus('PLAYING');
           // wait 3 seconds, then stop
           setTimeout(() => {
             setOtherPlayStatus('STOPPED');
           }, 3000);
+
         }
       });
     });
@@ -126,7 +124,6 @@ const Home = () => {
         }}
         mirrored={facingMode === FACING_MODE_USER}
       />
-      <Map />
 
     </div>
   );
