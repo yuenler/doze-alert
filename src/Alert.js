@@ -16,7 +16,6 @@ const Alert = () => {
     // wait 3 seconds, then stop
     setTimeout(() => {
       setPlayStatus('STOPPED');
-      navigate('/alert')
     }, 1500);
 
     // flash the stop sign

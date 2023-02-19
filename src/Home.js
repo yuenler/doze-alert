@@ -24,6 +24,7 @@ const Home = () => {
   const [facingMode, setFacingMode] = useState(FACING_MODE_ENVIRONMENT);
   const [otherPlayStatus, setOtherPlayStatus] = useState('STOPPED');
   const [showAlert, setShowAlert] = useState(false);
+  const [ready, setReady] = useState(false);
 
 
   const videoConstraints = {
@@ -48,7 +49,7 @@ const Home = () => {
     // first need to find the eye from the face
     const landmarks = await faceapi.detectSingleFace(screenshot).withFaceLandmarks();
     if (!landmarks) {
-      return;
+      return 1;
     }
     const leftEye = landmarks.landmarks.getLeftEye()
     const rightEye = landmarks.landmarks.getRightEye()
@@ -96,10 +97,9 @@ const Home = () => {
 
   const detectDrowsy = async () => {
     const drowsy = (await drowsyClassfier()) < 0.5;
-
     if (drowsy) {
       alertOtherDrivers();
-      navigate('/alert')
+      navigate('/doze-alert/alert')
     }
 
   }
@@ -134,8 +134,9 @@ const Home = () => {
 
 
   const loadFaceApiModels = async () => {
-    await faceapi.loadSsdMobilenetv1Model('/models');
-    await faceapi.loadFaceLandmarkModel('/models');
+    await faceapi.loadSsdMobilenetv1Model('/doze-alert/models');
+    await faceapi.loadFaceLandmarkModel('/doze-alert/models');
+    setReady(true);
   }
 
   useEffect(() => {
@@ -183,6 +184,9 @@ const Home = () => {
         }}
         mirrored={facingMode === FACING_MODE_USER}
       />
+      {
+        !ready && <div className="loading">Loading machine learning models...</div>
+      }
 
     </div>
   );

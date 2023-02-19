@@ -25,8 +25,8 @@ function App() {
     <div className="d-flex justify-content-center" style={{ marginTop: 20 }}>
       <Router>
         <Routes>
-          <Route exact path="/" element={<Home />} />
-          <Route path="/alert" element={<Alert />} />
+          <Route exact path="/doze-alert" element={<Home />} />
+          <Route path="doze-alert/alert" element={<Alert />} />
         </Routes>
       </Router>
     </div>
