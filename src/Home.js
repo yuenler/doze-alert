@@ -119,7 +119,7 @@ const Home = () => {
       const alert = snapshot.val();
       navigator.geolocation.getCurrentPosition(function (position) {
         const distanceToAlert = distance(position.coords.latitude, position.coords.longitude, alert.latitude, alert.longitude);
-        if (distanceToAlert < 1000 && alert.timestamp > Date.now() - 5000) {
+        if (distanceToAlert < 1000 && alert.timestamp > Date.now() - 30000) {
           setShowAlert(true);
           setOtherPlayStatus('PLAYING');
           // wait 3 seconds, then stop
