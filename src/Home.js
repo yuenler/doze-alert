@@ -8,10 +8,9 @@ import geolib from 'geolib';
 import Sound from 'react-sound';
 import { useNavigate } from "react-router-dom";
 import OtherDriverModal from './OtherDriverModal';
-import * as tf from "@tensorflow/tfjs";
+import predict from './predict';
+import * as faceapi from 'face-api.js';
 
-
-let model;
 
 const Home = () => {
   const navigate = useNavigate();
@@ -44,21 +43,55 @@ const Home = () => {
 
   }
 
-  const drowsyClassfier = (imageSrc) => {
-    model.detect(imageSrc).then(predictions => {
-      console.log('Predictions: ', predictions);
-    });
+  const drowsyClassfier = async () => {
+    const screenshot = webcamRef.current.video;
+    // first need to find the eye from the face
+    const landmarks = await faceapi.detectSingleFace(screenshot).withFaceLandmarks();
+    if (!landmarks) {
+      return;
+    }
+    const leftEye = landmarks.landmarks.getLeftEye()
+    const rightEye = landmarks.landmarks.getRightEye()
+
+    // for each eye, find the average x and y
+    const leftEyeX = leftEye.map((point) => point.x)
+    const leftEyeY = leftEye.map((point) => point.y)
+    const rightEyeX = rightEye.map((point) => point.x)
+    const rightEyeY = rightEye.map((point) => point.y)
+
+    const leftEyeAvgX = leftEyeX.reduce((a, b) => a + b, 0) / leftEyeX.length;
+    const leftEyeAvgY = leftEyeY.reduce((a, b) => a + b, 0) / leftEyeY.length;
+    const rightEyeAvgX = rightEyeX.reduce((a, b) => a + b, 0) / rightEyeX.length;
+    const rightEyeAvgY = rightEyeY.reduce((a, b) => a + b, 0) / rightEyeY.length;
+
+    // crop the image to be the eye by going 64 pixels in each direction
+    // create new canvas and draw the image on it
+    const leftCanvas = document.createElement('canvas');
+    leftCanvas.width = 64;
+    leftCanvas.height = 64;
+    const leftCtx = leftCanvas.getContext('2d');
+    leftCtx.drawImage(screenshot, leftEyeAvgX - 32, leftEyeAvgY - 32, 64, 64, 0, 0, 64, 64);
+
+    const rightCanvas = document.createElement('canvas');
+    rightCanvas.width = 64;
+    rightCanvas.height = 64;
+    const rightCtx = rightCanvas.getContext('2d');
+    rightCtx.drawImage(screenshot, rightEyeAvgX - 32, rightEyeAvgY - 32, 64, 64, 0, 0, 64, 64);
+
+    const leftImageSrc = leftCanvas.toDataURL('image/png');
+    const rightImageSrc = rightCanvas.toDataURL('image/png');
+
+    predict(leftCanvas);
+
     return 0.4;
   }
 
-  const detectDrowsy = async (imageSrc) => {
-    const drowsy = drowsyClassfier(imageSrc) > 0.5;
+  const detectDrowsy = async () => {
+    const drowsy = drowsyClassfier() > 0.5;
 
     if (drowsy) {
-
       alertOtherDrivers();
       navigate('/alert')
-
     }
 
   }
@@ -91,12 +124,16 @@ const Home = () => {
     });
   }
 
+
+  const loadFaceApiModels = async () => {
+    await faceapi.loadSsdMobilenetv1Model('/models');
+    await faceapi.loadFaceLandmarkModel('/models');
+  }
+
   useEffect(() => {
-    // load the model
-    model = tf.loadLayersModel('https://raw.githubusercontent.com/yuenler/doze-alert/main/machineLearning/model.json');
+    // load face detection model
 
-
-
+    loadFaceApiModels();
 
     // get current user location (this is only to make sure that the browser asks for permission)
     navigator.geolocation.getCurrentPosition(function (position) {
@@ -107,8 +144,7 @@ const Home = () => {
 
     // every 5 seconds, take a screenshot and classify it as drowsy or not
     const interval = setInterval(() => {
-      const imageSrc = webcamRef.current.getScreenshot();
-      detectDrowsy(imageSrc);
+      detectDrowsy();
     }, 5000);
 
     return () => clearInterval(interval);
