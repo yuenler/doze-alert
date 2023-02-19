@@ -10,11 +10,11 @@ import { useNavigate } from "react-router-dom";
 import OtherDriverModal from './OtherDriverModal';
 import predict from './predict';
 import * as faceapi from 'face-api.js';
+import Activity from './Activity';
 
 
 const Home = () => {
   const navigate = useNavigate();
-
 
   const userSessionId = Math.random().toString(36).substring(7);
 
@@ -25,6 +25,7 @@ const Home = () => {
   const [otherPlayStatus, setOtherPlayStatus] = useState('STOPPED');
   const [showAlert, setShowAlert] = useState(false);
   const [ready, setReady] = useState(false);
+  const [dozedOffTimes, setDozedOffTimes] = useState([]);
 
 
   const videoConstraints = {
@@ -96,12 +97,14 @@ const Home = () => {
   }
 
   const detectDrowsy = async () => {
-    const drowsy1 = (await drowsyClassfier()) < 0.5;
+    const drowsy1 = (await drowsyClassfier()) < 0.7;
     // wait 5 seconds
     await new Promise(r => setTimeout(r, 5000));
-    const drowsy2 = (await drowsyClassfier()) < 0.5;
+    const drowsy2 = (await drowsyClassfier()) < 0.7;
     if (drowsy1 && drowsy2) {
       alertOtherDrivers();
+      localStorage.setItem('dozedOffTimes', JSON.stringify([...dozedOffTimes, Date.now()]));
+      setDozedOffTimes([...dozedOffTimes, Date.now()])
       navigate('/doze-alert/alert')
     }
   }
@@ -145,8 +148,14 @@ const Home = () => {
   }
 
   useEffect(() => {
-    // load face detection model
 
+    // load dozed off times from local storage
+    const storageTimes = JSON.parse(localStorage.getItem('dozedOffTimes'));
+    if (storageTimes) {
+      setDozedOffTimes(storageTimes);
+    }
+
+    // load face detection model
     loadFaceApiModels();
 
     // get current user location (this is only to make sure that the browser asks for permission)
@@ -192,6 +201,8 @@ const Home = () => {
       {
         !ready && <div className="loading">Loading machine learning models...</div>
       }
+
+      <Activity times={dozedOffTimes} />
 
     </div>
   );
