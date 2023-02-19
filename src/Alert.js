@@ -5,7 +5,6 @@ import 'bootstrap/dist/css/bootstrap.css';
 import AlertSound from './alert.wav';
 import Sound from 'react-sound';
 import Stop from './stop.png';
-import OtherDriverModal from './OtherDriverModal';
 
 const Alert = () => {
   const navigate = useNavigate();
@@ -49,7 +48,7 @@ const Alert = () => {
       }}>
         <h1>Alert</h1>
       </div >
-      Your level of activity has suggested that you may be tired. To avoid car injury, stop by a near rest stop or pull aside.
+      It looks like you dozed off! To avoid car injury, stop by a near rest stop or pull aside.
       <div style={{ marginTop: 40 }}>
         <img
           id="stop"
