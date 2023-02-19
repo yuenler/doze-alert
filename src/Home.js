@@ -78,16 +78,24 @@ const Home = () => {
     const rightCtx = rightCanvas.getContext('2d');
     rightCtx.drawImage(screenshot, rightEyeAvgX - 32, rightEyeAvgY - 32, 64, 64, 0, 0, 64, 64);
 
-    const leftImageSrc = leftCanvas.toDataURL('image/png');
-    const rightImageSrc = rightCanvas.toDataURL('image/png');
+    // const leftImageSrc = leftCanvas.toDataURL('image/png');
+    // const rightImageSrc = rightCanvas.toDataURL('image/png');
 
-    predict(leftCanvas);
+    // randomnly choose left or right eye to check
+    const random = Math.random();
+    if (random > 0.5) {
+      const prediction = await predict(leftCanvas);
+      console.log(prediction);
+      return prediction;
+    } else {
+      const prediction = await predict(rightCanvas);
+      return prediction;
+    }
 
-    return 0.4;
   }
 
   const detectDrowsy = async () => {
-    const drowsy = drowsyClassfier() > 0.5;
+    const drowsy = (await drowsyClassfier()) < 0.5;
 
     if (drowsy) {
       alertOtherDrivers();
