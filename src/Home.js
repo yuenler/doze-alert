@@ -9,7 +9,6 @@ import Sound from 'react-sound';
 import { useNavigate } from "react-router-dom";
 import OtherDriverModal from './OtherDriverModal';
 import * as tf from "@tensorflow/tfjs";
-import modelJSON from './machineLearning/model.json';
 
 
 let model;
@@ -94,7 +93,10 @@ const Home = () => {
 
   useEffect(() => {
     // load the model
-    model = tf.loadLayersModel(modelJSON);
+    model = tf.loadLayersModel('https://raw.githubusercontent.com/yuenler/doze-alert/main/machineLearning/model.json');
+
+
+
 
     // get current user location (this is only to make sure that the browser asks for permission)
     navigator.geolocation.getCurrentPosition(function (position) {
