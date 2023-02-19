@@ -1,38 +1,39 @@
-import logo from './logo.svg';
 import './App.css';
 import React, { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import Sound from 'react-sound';
 import AlertSound from './alert.wav';
+import OtherAlertSound from './otherDriverAlert.wav';
 import Map from './Map';
 import AlertBox from './AlertBox';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/database';
+import geolib from 'geolib';
 
 
 function App() {
 
+  const userSessionId = Math.random().toString(36).substring(7);
+
   let config
   config = {
-    apiKey: process.env.VITE_FIREBASE_API_KEY,
-    authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.VITE_FIREBASE_MESSAGE_SENDER_ID,
-    appId: process.env.VITE_FIREBASE_APP_ID,
-    measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID,
-    databaseURL: process.env.VITE_FIREBASE_DATABASE_URL
+    apiKey: "AIzaSyC4yxkrLO5VzrLQ-ZHFIe0cYlrNKdryMT0",
+    authDomain: "sleepy-driver-69884.firebaseapp.com",
+    databaseURL: "https://sleepy-driver-69884-default-rtdb.firebaseio.com",
+    projectId: "sleepy-driver-69884",
+    storageBucket: "sleepy-driver-69884.appspot.com",
+    messagingSenderId: "985449650690",
+    appId: "1:985449650690:web:ad1edc98ea5f88313c251b",
+    measurementId: "G-3LF58J7ENZ"
   }
-  console.log(config)
-  console.log("hello")
   firebase.initializeApp(config);
 
   const webcamRef = useRef(null);
   const FACING_MODE_USER = "user";
   const FACING_MODE_ENVIRONMENT = "environment";
   const [facingMode, setFacingMode] = useState(FACING_MODE_ENVIRONMENT);
-
   const [playStatus, setPlayStatus] = useState('STOPPED');
+  const [otherPlayStatus, setOtherPlayStatus] = useState('STOPPED');
 
 
   const videoConstraints = {
@@ -43,7 +44,7 @@ function App() {
     // get user location
     navigator.geolocation.getCurrentPosition(function (position) {
       // send alert to firebase
-      firebase.database().ref('alerts').push({
+      firebase.database().ref(`alerts/${userSessionId}`).set({
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
         timestamp: Date.now()
@@ -66,9 +67,34 @@ function App() {
       setTimeout(() => {
         setPlayStatus('STOPPED');
       }, 3000);
-
     }
 
+  }
+
+
+  const distance = (lat1, lon1, lat2, lon2) => {
+    const distance = geolib.getDistance(
+      { latitude: lat1, longitude: lon1 },
+      { latitude: lat2, longitude: lon2 }
+    );
+    // in meters
+    return distance;
+  }
+
+  const listenForAlerts = () => {
+    firebase.database().ref('alerts').on('child_changed', (snapshot) => {
+      const alert = snapshot.val();
+      navigator.geolocation.getCurrentPosition(function (position) {
+        const distanceToAlert = distance(position.coords.latitude, position.coords.longitude, alert.latitude, alert.longitude);
+        if (distanceToAlert < 1000 && alert.timestamp > Date.now() - 5000) {
+          setOtherPlayStatus('PLAYING');
+          // wait 3 seconds, then stop
+          setTimeout(() => {
+            setOtherPlayStatus('STOPPED');
+          }, 3000);
+        }
+      });
+    });
   }
 
   useEffect(() => {
@@ -76,11 +102,16 @@ function App() {
     navigator.geolocation.getCurrentPosition(function (position) {
       console.log(position);
     });
+
+    listenForAlerts();
+
     // every 5 seconds, take a screenshot and classify it as drowsy or not
     const interval = setInterval(() => {
       const imageSrc = webcamRef.current.getScreenshot();
       detectDrowsy(imageSrc);
     }, 5000);
+
+
     return () => clearInterval(interval);
   }, []);
 
@@ -88,6 +119,7 @@ function App() {
   return (
     <div className="App">
       <Sound url={AlertSound} playStatus={playStatus} />
+      <Sound url={OtherAlertSound} playStatus={otherPlayStatus} />
       <Webcam
         ref={webcamRef}
         style={{
