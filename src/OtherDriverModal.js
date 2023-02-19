@@ -1,16 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 
-function OtherDriverModal() {
-  const [show, setShow] = useState(true);
-
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
+function OtherDriverModal({ handleClose }) {
 
   return (
     <>
-      <Modal show={show} onHide={handleClose}>
+      <Modal onHide={handleClose}>
         <Modal.Header closeButton>
           <Modal.Title>Drowsy Driver Nearby!</Modal.Title>
         </Modal.Header>

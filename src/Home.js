@@ -122,11 +122,13 @@ const Home = () => {
   const listenForAlerts = () => {
     firebase.database().ref('alerts').on('value', (snapshot) => {
       // iterate through each person in the snapshot
+      console.log('something changed')
       snapshot.forEach((childSnapshot) => {
         const alert = childSnapshot.val();
         navigator.geolocation.getCurrentPosition(function (position) {
           const distanceToAlert = distance(position.coords.latitude, position.coords.longitude, alert.latitude, alert.longitude);
           if (distanceToAlert < 1000 && alert.timestamp > Date.now() - 30000) {
+            console.log('another driver is dozing off!')
             setShowAlert(true);
             setOtherPlayStatus('PLAYING');
             // wait 3 seconds, then stop
@@ -178,7 +180,9 @@ const Home = () => {
     <div className="App" >
       {
         showAlert &&
-        <OtherDriverModal />
+        <OtherDriverModal
+          handleClose={() => setShowAlert(false)}
+        />
       }
       <Sound url={OtherAlertSound} playStatus={otherPlayStatus} />
       <Webcam
